@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Paper, Typography, Box, Button, Alert } from '@mui/material'
+import UploadModal from './UploadModal'
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf']
 const MAX_SIZE_MB = 5
@@ -7,6 +8,7 @@ const MAX_SIZE_MB = 5
 function Upload() {
   const [file, setFile] = useState(null)
   const [error, setError] = useState('')
+  const [modalOpen, setModalOpen] = useState(false)
   const fileInputRef = useRef()
 
   const handleFile = (f) => {
@@ -46,6 +48,10 @@ function Upload() {
     fileInputRef.current.click()
   }
 
+  const handlePreviewClick = () => {
+    setModalOpen(true)
+  }
+
   const renderPreview = () => {
     if (!file) return null
     if (file.type.startsWith('image/')) {
@@ -54,7 +60,8 @@ function Upload() {
           <img
             src={URL.createObjectURL(file)}
             alt="preview"
-            style={{ maxWidth: 200, maxHeight: 200, borderRadius: 8 }}
+            style={{ maxWidth: 200, maxHeight: 200, borderRadius: 8, cursor: 'pointer' }}
+            onClick={handlePreviewClick}
           />
         </Box>
       )
@@ -66,6 +73,8 @@ function Upload() {
             type="application/pdf"
             width="200px"
             height="200px"
+            style={{ cursor: 'pointer' }}
+            onClick={handlePreviewClick}
           />
         </Box>
       )
@@ -110,6 +119,7 @@ function Upload() {
           Selected: {file.name}
         </Typography>
       )}
+      <UploadModal open={modalOpen} onClose={() => setModalOpen(false)} file={file} />
     </Paper>
   )
 }
