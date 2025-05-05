@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react'
 import { Paper, Typography, Box, Button, Alert, IconButton, Grid } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import UploadModal from './UploadModal'
+import { uploadFile } from '../../services/api'
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf']
 const MAX_SIZE_MB = 5
@@ -9,6 +10,7 @@ const MAX_SIZE_MB = 5
 function Upload() {
   const [files, setFiles] = useState([])
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [modalFile, setModalFile] = useState(null)
   const [dragActive, setDragActive] = useState(false)
@@ -83,11 +85,27 @@ function Upload() {
   const handleClearAll = () => {
     setFiles([])
     setError('')
+    setSuccess('')
   }
 
   const handlePreviewClick = (file) => {
     setModalFile(file)
     setModalOpen(true)
+  }
+
+  const handleSubmit = async () => {
+    setError('')
+    setSuccess('')
+    if (files.length === 0) {
+      setError('Please select a file to upload.')
+      return
+    }
+    try {
+      const response = await uploadFile(files[0])
+      setSuccess(response.message || 'File uploaded successfully!')
+    } catch (err) {
+      setError(err.message || 'Upload failed.')
+    }
   }
 
   const renderPreview = (file, idx) => {
@@ -171,7 +189,11 @@ function Upload() {
       <Button variant="outlined" color="secondary" onClick={handleClearAll} sx={{ mb: 2 }} disabled={files.length === 0}>
         Clear All
       </Button>
+      <Button variant="contained" color="success" onClick={handleSubmit} sx={{ mb: 2, ml: 2 }} disabled={files.length === 0}>
+        Submit
+      </Button>
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
       <Grid container spacing={2} justifyContent="center" sx={{ mt: 2 }}>
         {files.map((file, idx) => (
           <Grid item key={file.name + idx}>

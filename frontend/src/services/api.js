@@ -1,6 +1,6 @@
 // Service to handle API requests to the backend
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 export async function uploadFile(file) {
   const formData = new FormData();
@@ -9,6 +9,10 @@ export async function uploadFile(file) {
   const response = await fetch(`${API_URL}/upload`, {
     method: 'POST',
     body: formData,
+    headers: {
+      'Accept': 'application/json',
+    },
+    // credentials: 'include', // Uncomment if backend requires cookies/auth
   });
 
   if (!response.ok) {
