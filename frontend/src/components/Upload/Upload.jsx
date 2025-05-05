@@ -11,6 +11,7 @@ function Upload() {
   const [error, setError] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [modalFile, setModalFile] = useState(null)
+  const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef()
 
   const validateFile = (f) => {
@@ -33,7 +34,6 @@ function Upload() {
         err = validation
         continue
       }
-      // Prevent duplicates by name and size
       if (!files.some(existing => existing.name === f.name && existing.size === f.size)) {
         newFiles.push(f)
       }
@@ -46,6 +46,7 @@ function Upload() {
   const handleDrop = (e) => {
     e.preventDefault()
     e.stopPropagation()
+    setDragActive(false)
     handleFiles(e.dataTransfer.files)
   }
 
@@ -54,12 +55,24 @@ function Upload() {
     e.stopPropagation()
   }
 
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+  }
+
   const handleFileChange = (e) => {
     handleFiles(e.target.files)
   }
 
   const handlePickFile = () => {
-    fileInputRef.current.value = null // allow re-upload of same file
+    fileInputRef.current.value = null
     fileInputRef.current.click()
   }
 
@@ -124,13 +137,16 @@ function Upload() {
       <Box
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
         sx={{
-          border: '2px dashed #1976d2',
+          border: dragActive ? '2px solid #1976d2' : '2px dashed #1976d2',
           borderRadius: 2,
           p: 4,
           mb: 2,
           cursor: 'pointer',
-          bgcolor: '#f5f5f5',
+          bgcolor: dragActive ? '#e3f2fd' : '#f5f5f5',
+          transition: 'border 0.2s, background 0.2s',
         }}
         onClick={handlePickFile}
       >
@@ -146,6 +162,9 @@ function Upload() {
           onChange={handleFileChange}
         />
       </Box>
+      <Typography variant="body2" color="text.secondary" mb={2}>
+        Allowed types: PNG, JPG, JPEG, PDF. Max size: {MAX_SIZE_MB}MB per file.
+      </Typography>
       <Button variant="contained" onClick={handlePickFile} sx={{ mb: 2, mr: 2 }}>
         Choose Files
       </Button>
@@ -165,4 +184,4 @@ function Upload() {
   )
 }
 
-export default Upload 
+export default Upload
