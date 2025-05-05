@@ -42,7 +42,7 @@ def extract_text_with_openai(file):
         """
         Extract the following fields from this receipt if present: Date, Qty, Item_Number, Item_Name, Vendor, Amount, Tax, Total. 
         Return the result as a JSON object with this structure: 
-        {"Date": "", "Vendor": "", "items": [{"Qty": "", "Item_Number": "", "Item_Name": "", "Amount": "", "Tax": "", "Total": ""}], "Amount": "", "Tax": "", "Total": ""}
+        {"Date": "", "Vendor": "", "items": [{"Qty": "", "Item_Number": "", "Item_Name": "", "Amount": ""}], "Subtotal": "", "Tax": "", "Total": ""}
         If a field is not present, leave it as an empty string. 
         Do not include any explanation, only output the JSON.
         """
