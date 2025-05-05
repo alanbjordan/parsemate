@@ -3,6 +3,15 @@
 # Import necessary libraries
 import os
 import json
+import openai
+import dotenv
+import base64
+from openai import OpenAI
+
+dotenv.load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def get_file_info(file):
     """
@@ -17,4 +26,33 @@ def get_file_info(file):
     }
     print(f"[File Info] {file_info}")
     return file_info
+
+def extract_text_with_openai(file):
+    """
+    Accepts a file object, sends it to OpenAI Vision API, and prompts it to extract all text, translating non-English text to English.
+    Prints the extracted and translated text to the backend log.
+    """
+    # Read file bytes and encode as base64
+    file_bytes = file.read()
+    base64_image = base64.b64encode(file_bytes).decode("utf-8")
+    data_url = f"data:image/jpeg;base64,{base64_image}"  # Adjust MIME type if needed
+
+    prompt = (
+        "Extract all text from this receipt. "
+        "Return only the extracted and translated text."
+    )
+
+    response = client.responses.create(
+        model="gpt-4.1-2025-04-14",  # or "gpt-4-vision-preview" if using chat.completions
+        input=[{
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": prompt},
+                {"type": "input_image", "image_url": data_url, "detail": "high"}
+            ],
+        }],
+    )
+
+    print(response.output_text)
+    return response.output_text
 

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Paper, Typography, Box, Button, Alert, IconButton, Grid } from '@mui/material'
+import { Paper, Typography, Box, Button, Alert, IconButton, Grid, CircularProgress } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import UploadModal from './UploadModal'
 import { uploadFile } from '../../services/api'
@@ -14,6 +14,7 @@ function Upload() {
   const [modalOpen, setModalOpen] = useState(false)
   const [modalFile, setModalFile] = useState(null)
   const [dragActive, setDragActive] = useState(false)
+  const [loading, setLoading] = useState(false)
   const fileInputRef = useRef()
 
   const validateFile = (f) => {
@@ -100,6 +101,7 @@ function Upload() {
       setError('Please select a file to upload.')
       return
     }
+    setLoading(true)
     try {
       const response = await uploadFile(files[0])
       setSuccess(response.message || 'File uploaded successfully!')
@@ -107,6 +109,7 @@ function Upload() {
     } catch (err) {
       setError(err.message || 'Upload failed.')
     }
+    setLoading(false)
   }
 
   const renderPreview = (file, idx) => {
@@ -190,8 +193,14 @@ function Upload() {
       <Button variant="outlined" color="secondary" onClick={handleClearAll} sx={{ mb: 2 }} disabled={files.length === 0}>
         Clear All
       </Button>
-      <Button variant="contained" color="success" onClick={handleSubmit} sx={{ mb: 2, ml: 2 }} disabled={files.length === 0}>
-        Submit
+      <Button
+        variant="contained"
+        color="success"
+        onClick={handleSubmit}
+        sx={{ mb: 2, ml: 2 }}
+        disabled={files.length === 0 || loading}
+      >
+        {loading ? <><CircularProgress size={20} sx={{ mr: 1 }} /> Uploading...</> : 'Submit'}
       </Button>
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}

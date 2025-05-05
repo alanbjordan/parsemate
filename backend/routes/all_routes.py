@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import os
-from services.receipt_parser import get_file_info
+from services.receipt_parser import get_file_info, extract_text_with_openai
 
 # Create a blueprint for all routes
 all_routes_bp = Blueprint("all_routes", __name__)
@@ -12,11 +12,12 @@ def upload_file():
         if 'file' not in request.files:
             return jsonify({"error": "No file part in the request"}), 400
         file = request.files['file']
+        print("DEBUG: Received file:", file)
         if file.filename == '':
             return jsonify({"error": "No selected file"}), 400
         # Optionally, save the file or process it here
         # file.save(os.path.join(UPLOAD_FOLDER, file.filename))
-        file_info = get_file_info(file)
+        file_info = extract_text_with_openai(file)
         # file_info is already printed in backend log by get_file_info
         return jsonify({
             "message": "File uploaded successfully",
