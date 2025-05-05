@@ -12,12 +12,13 @@ export async function uploadFile(file) {
     headers: {
       'Accept': 'application/json',
     },
-    // credentials: 'include', // Uncomment if backend requires cookies/auth
   });
-
+  console.log('new response: ', response);
   if (!response.ok) {
     throw new Error('File upload failed');
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('Backend JSON data:', data);
+  return data;
 } 

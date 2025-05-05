@@ -2,3 +2,4 @@
 .env
 zshort_cuts.txt
 *.jpg
+backend/routes/__pycache__/all_routes.cpython-312.pyc
