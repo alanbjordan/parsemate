@@ -103,6 +103,7 @@ function Upload() {
     try {
       const response = await uploadFile(files[0])
       setSuccess(response.message || 'File uploaded successfully!')
+      setFiles([])
     } catch (err) {
       setError(err.message || 'Upload failed.')
     }
