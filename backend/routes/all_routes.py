@@ -46,3 +46,7 @@ def save_receipt():
     except Exception as e:
         print("DEBUG: Exception encountered in save receipt:", e)
         import traceback
+
+@all_routes_bp.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "ok", "message": "Backend is healthy"}), 200

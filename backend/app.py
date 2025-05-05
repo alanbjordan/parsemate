@@ -5,6 +5,10 @@
 from flask import Flask
 # Import the register_routes function
 from routes.all_routes import all_routes_bp
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # create_app function to initialize the Flask application
 def create_app():
