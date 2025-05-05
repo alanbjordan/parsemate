@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 import os
-from services.receipt_parser import get_file_info, extract_text_with_openai
+from services.receipt_parser import get_file_info
+from helpers.pdf2img_helpers import handle_file_for_ocr
 
 # Create a blueprint for all routes
 all_routes_bp = Blueprint("all_routes", __name__)
@@ -17,7 +18,7 @@ def upload_file():
             return jsonify({"error": "No selected file"}), 400
         # Optionally, save the file or process it here
         # file.save(os.path.join(UPLOAD_FOLDER, file.filename))
-        file_info = extract_text_with_openai(file)
+        file_info = handle_file_for_ocr(file)
         # file_info is already printed in backend log by get_file_info
         return jsonify({
             "message": "File uploaded successfully",

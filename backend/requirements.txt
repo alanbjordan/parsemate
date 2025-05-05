@@ -10,3 +10,4 @@ python-dotenv
 flask_cors
 opencv-python
 googletrans
+pdf2image

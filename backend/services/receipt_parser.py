@@ -29,8 +29,8 @@ def get_file_info(file):
 
 def extract_text_with_openai(file):
     """
-    Accepts a file object, sends it to OpenAI Vision API, and prompts it to extract all text, translating non-English text to English.
-    Prints the extracted and translated text to the backend log.
+    Accepts an image file (not PDF), sends it to OpenAI Vision API, and prompts it to extract all text.
+    Prints the extracted text to the backend log.
     """
     # Read file bytes and encode as base64
     file_bytes = file.read()
@@ -39,7 +39,7 @@ def extract_text_with_openai(file):
 
     prompt = (
         "Extract all text from this receipt. "
-        "Return only the extracted and translated text."
+        "Return only the extracted text."
     )
 
     response = client.responses.create(
