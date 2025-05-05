@@ -1,22 +1,15 @@
 import React from 'react'
-import { ThemeProvider, createTheme, CssBaseline, Container, Box, Stepper, Step, StepLabel, Snackbar } from '@mui/material'
+import { Container, Box, Stepper, Step, StepLabel, Snackbar } from '@mui/material'
 import NavBar from './NavBar/NavBar'
 
 const steps = ['Upload Receipt', 'Review & Edit', 'Save']
 
 function Layout({ children, activeStep, snackbarOpen, snackbarMsg, onSnackbarClose }) {
-  const theme = createTheme({
-    palette: {
-      mode: 'light',
-    },
-  })
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <>
       <NavBar />
       <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Stepper activeStep={activeStep} alternativeLabel>
+        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
@@ -33,7 +26,7 @@ function Layout({ children, activeStep, snackbarOpen, snackbarMsg, onSnackbarClo
         onClose={onSnackbarClose}
         message={snackbarMsg}
       />
-    </ThemeProvider>
+    </>
   )
 }
 

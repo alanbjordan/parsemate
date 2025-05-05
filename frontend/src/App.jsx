@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import Layout from './components/Layout'
+import { ThemeProvider, CssBaseline } from '@mui/material'
+import theme from './theme'
 
 function App() {
   const [activeStep, setActiveStep] = useState(0)
@@ -14,14 +16,17 @@ function App() {
   ]
 
   return (
-    <Layout
-      activeStep={activeStep}
-      snackbarOpen={snackbarOpen}
-      snackbarMsg={snackbarMsg}
-      onSnackbarClose={() => setSnackbarOpen(false)}
-    >
-      {stepContent[activeStep]}
-    </Layout>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Layout
+        activeStep={activeStep}
+        snackbarOpen={snackbarOpen}
+        snackbarMsg={snackbarMsg}
+        onSnackbarClose={() => setSnackbarOpen(false)}
+      >
+        {stepContent[activeStep]}
+      </Layout>
+    </ThemeProvider>
   )
 }
 
