@@ -8,15 +8,27 @@ function Layout({ children, activeStep, snackbarOpen, snackbarMsg, onSnackbarClo
   return (
     <>
       <NavBar />
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+      <Container
+        maxWidth="md"
+        sx={{
+          mt: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Stepper
+          activeStep={activeStep}
+          alternativeLabel
+          sx={{ mb: 4, width: '100%' }}
+        >
           {steps.map((label) => (
             <Step key={label}>
               <StepLabel>{label}</StepLabel>
             </Step>
           ))}
         </Stepper>
-        <Box sx={{ mt: 4, minHeight: 300 }}>
+        <Box sx={{ minHeight: 300, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {children}
         </Box>
       </Container>
