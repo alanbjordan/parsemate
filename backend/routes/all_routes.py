@@ -23,7 +23,7 @@ def upload_file():
         return jsonify({
             "message": "File uploaded successfully",
             "filename": file.filename,
-            "file_info": file_info
+            "parsed_data": file_info
         }), 200
     except Exception as e:
         print("DEBUG: Exception encountered in upload file:", e)
