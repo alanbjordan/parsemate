@@ -20,5 +20,5 @@ export async function uploadFile(file) {
 
   const data = await response.json();
   console.log('Backend JSON data:', data);
-  return data;
+  return data.parsed_data;
 } 

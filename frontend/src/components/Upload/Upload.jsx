@@ -7,7 +7,7 @@ import { uploadFile } from '../../services/api'
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf']
 const MAX_SIZE_MB = 5
 
-function Upload() {
+function Upload({ onUploadSuccess, onNext }) {
   const [files, setFiles] = useState([])
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -103,9 +103,11 @@ function Upload() {
     }
     setLoading(true)
     try {
-      const response = await uploadFile(files[0])
-      setSuccess(response.message || 'File uploaded successfully!')
+      const parsedData = await uploadFile(files[0])
+      setSuccess('File uploaded and parsed successfully!')
       setFiles([])
+      if (onUploadSuccess) onUploadSuccess(parsedData)
+      if (onNext) onNext()
     } catch (err) {
       setError(err.message || 'Upload failed.')
     }

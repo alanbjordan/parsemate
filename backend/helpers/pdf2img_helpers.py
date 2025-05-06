@@ -22,17 +22,24 @@ def pdf_to_images(file):
 def handle_file_for_ocr(file):
     """
     Detects file type and converts PDF to images if needed, then extracts text from each page or image.
-    Returns the combined extracted text from all pages/images.
+    Returns a list of page objects: [{"page": 1, "data": ...}, {"page": 2, "error": ...}, ...]
     """
     if file.mimetype == 'application/pdf' or file.filename.lower().endswith('.pdf'):
         print("[Info] PDF detected, converting to images...")
         image_files = pdf_to_images(file)
-        all_text = []
+        all_pages = []
         for idx, image_file in enumerate(image_files):
             print(f"[Info] Processing page {idx+1} of PDF...")
-            text = extract_text_with_openai(image_file)
-            all_text.append(f"--- Page {idx+1} ---\n{text}")
-        return '\n\n'.join(all_text)
+            result = extract_text_with_openai(image_file)
+            if isinstance(result, dict) and result.get("error"):
+                all_pages.append({"page": idx+1, "error": result["error"]})
+            else:
+                all_pages.append({"page": idx+1, "data": result})
+        return all_pages
     else:
         file.seek(0)
-        return extract_text_with_openai(file)
+        result = extract_text_with_openai(file)
+        if isinstance(result, dict) and result.get("error"):
+            return [{"page": 1, "error": result["error"]}]
+        else:
+            return [{"page": 1, "data": result}]
