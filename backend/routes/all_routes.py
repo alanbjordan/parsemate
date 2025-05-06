@@ -13,7 +13,6 @@ def upload_file():
         if 'file' not in request.files:
             return jsonify({"error": "No file part in the request"}), 400
         file = request.files['file']
-        print("DEBUG: Received file:", file)
         if file.filename == '':
             return jsonify({"error": "No selected file"}), 400
         # Optionally, save the file or process it here

@@ -13,12 +13,10 @@ export async function uploadFile(file) {
       'Accept': 'application/json',
     },
   });
-  console.log('new response: ', response);
   if (!response.ok) {
     throw new Error('File upload failed');
   }
 
   const data = await response.json();
-  console.log('Backend JSON data:', data);
   return data.parsed_data;
 } 
