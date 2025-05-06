@@ -22,7 +22,7 @@ def pdf_to_images(file):
 def handle_file_for_ocr(file):
     """
     Detects file type and converts PDF to images if needed, then extracts text from each page or image.
-    Returns a list of page objects: [{"page": 1, "data": ...}, {"page": 2, "error": ...}, ...]
+    Returns a list of page objects: [{"page": 1, "data": ...}, ...] (skipping pages with no valid items)
     """
     if file.mimetype == 'application/pdf' or file.filename.lower().endswith('.pdf'):
         print("[Info] PDF detected, converting to images...")
@@ -32,14 +32,24 @@ def handle_file_for_ocr(file):
             print(f"[Info] Processing page {idx+1} of PDF...")
             result = extract_text_with_openai(image_file)
             if isinstance(result, dict) and result.get("error"):
-                all_pages.append({"page": idx+1, "error": result["error"]})
-            else:
+                # Only skip if error is about no valid items
+                if result["error"] == "No valid items found on this page.":
+                    continue
+                else:
+                    all_pages.append({"page": idx+1, "error": result["error"]})
+            elif result and result.get("items") and len(result["items"]):
                 all_pages.append({"page": idx+1, "data": result})
+            # else: skip pages with no valid items
         return all_pages
     else:
         file.seek(0)
         result = extract_text_with_openai(file)
         if isinstance(result, dict) and result.get("error"):
-            return [{"page": 1, "error": result["error"]}]
-        else:
+            if result["error"] == "No valid items found on this page.":
+                return []
+            else:
+                return [{"page": 1, "error": result["error"]}]
+        elif result and result.get("items") and len(result["items"]):
             return [{"page": 1, "data": result}]
+        else:
+            return []

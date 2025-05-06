@@ -139,9 +139,8 @@ export default function ReceiptTable({ data, onNext }) {
         color="primary"
         style={{ marginTop: 24, marginRight: 16 }}
         onClick={handleSave}
-        disabled={!edited}
       >
-        Save & Next
+        Save & Apply
       </Button>
       <Button
         variant="outlined"
