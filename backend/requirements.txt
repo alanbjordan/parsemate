@@ -7,3 +7,7 @@ google-auth
 google-auth-oauthlib
 google-auth-httplib2
 python-dotenv
+flask_cors
+opencv-python
+googletrans
+pdf2image
