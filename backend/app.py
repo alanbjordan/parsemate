@@ -5,6 +5,7 @@
 from flask import Flask
 # Import the register_routes function
 from routes.all_routes import all_routes_bp
+from routes.sheets_routes import sheets_bp
 from dotenv import load_dotenv
 import os
 from flask_cors import CORS
@@ -24,6 +25,7 @@ app = create_app()
 
 # Register routes
 app.register_blueprint(all_routes_bp)
+app.register_blueprint(sheets_bp)
 
 # Enable CORS on app and blueprint
 CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
