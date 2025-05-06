@@ -64,6 +64,12 @@ def extract_text_with_openai(file):
     # Parse and validate the response as ReceiptData
     try:
         data = json.loads(response.output_text)
+        # Filter: Only return if at least one item has both Item_Name and Amount non-empty
+        valid_items = [item for item in data.get("items", []) if item.get("Item_Name") and item.get("Amount")]
+        if not valid_items:
+            print("[Receipt Parsing] No valid items with both Item_Name and Amount found. Skipping page.")
+            return {"error": "No valid items found on this page."}
+        data["items"] = valid_items
         print(data)
         return data
     except Exception as e:
