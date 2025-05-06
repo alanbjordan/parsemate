@@ -2,6 +2,9 @@ from pdf2image import convert_from_bytes
 from io import BytesIO
 from services.receipt_parser import extract_text_with_openai
 
+# Error messages
+ERROR_MESSAGE = "No valid items found on this page."
+
 def pdf_to_images(file):
     """
     Converts all pages of a PDF file to JPEG images in memory.
@@ -33,7 +36,7 @@ def handle_file_for_ocr(file):
             result = extract_text_with_openai(image_file)
             if isinstance(result, dict) and result.get("error"):
                 # Only skip if error is about no valid items
-                if result["error"] == "No valid items found on this page.":
+                if result["error"] == ERROR_MESSAGE:
                     continue
                 else:
                     all_pages.append({"page": idx+1, "error": result["error"]})
