@@ -46,7 +46,11 @@ def handle_file_for_ocr(file):
         return all_pages
     else:
         file.seek(0)
-        result = extract_text_with_openai(file)
+        try:
+            result = extract_text_with_openai(file)
+        except Exception as e:
+            print(f"[Error] Unexpected error during OCR processing: {e}")
+            return [{"page": 1, "error": "Unexpected error during OCR processing"}]
         if isinstance(result, dict) and result.get("error"):
             if result["error"] == "No valid items found on this page.":
                 return []
