@@ -1,6 +1,6 @@
 from pdf2image import convert_from_bytes
 from io import BytesIO
-from services.receipt_parser import extract_text_with_openai
+from helpers.receipt_parser_helpers import extract_text_with_openai
 
 # Error messages
 ERROR_MESSAGE = "No valid items found on this page."

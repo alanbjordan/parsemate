@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react'
 import { Paper, Typography, Box, Button, Alert, IconButton, Grid, CircularProgress } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import UploadModal from './UploadModal'
-import { uploadFile } from '../../services/api'
+import { uploadReceipt } from '../../services/api'
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf']
 const MAX_SIZE_MB = 5
@@ -103,7 +103,7 @@ function Upload({ onUploadSuccess, onNext }) {
     }
     setLoading(true)
     try {
-      const parsedData = await uploadFile(files[0])
+      const parsedData = await uploadReceipt(files[0])
       setSuccess('File uploaded and parsed successfully!')
       setFiles([])
       if (onUploadSuccess) onUploadSuccess(parsedData)
