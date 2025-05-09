@@ -58,4 +58,12 @@ export async function fetchReceiptSummaries() {
   console.log('Receipt summaries fetched successfully');
   console.log(json);
   return json;
+}
+
+export async function fetchReceiptById(id) {
+  const response = await fetch(`${API_URL}/receipts/${id}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch receipt details');
+  }
+  return await response.json();
 } 

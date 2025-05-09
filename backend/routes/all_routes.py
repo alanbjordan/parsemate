@@ -100,3 +100,17 @@ def get_receipts_summary():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+@all_routes_bp.route("/receipts/<int:receipt_id>", methods=["GET"])
+def get_receipt(receipt_id):
+    """Return the full details of a single receipt by id."""
+    try:
+        receipt = Receipt.query.get(receipt_id)
+        if not receipt:
+            return jsonify({"error": "Receipt not found"}), 404
+        return jsonify(receipt.to_dict()), 200
+    except Exception as e:
+        print("DEBUG: Exception encountered in get_receipt:", e)
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
