@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography, Box, TextField } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography, Box, TextField, Snackbar, Alert } from '@mui/material';
 
 export default function ReceiptTable({ data, onNext }) {
   // Deep copy data to local state for editing
   const [pages, setPages] = useState(() => JSON.parse(JSON.stringify(data)));
   const [edited, setEdited] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+  const [sheetSelectorOpen, setSheetSelectorOpen] = useState(false);
+  const [selectedSheet, setSelectedSheet] = useState(null);
 
   if (!pages || !Array.isArray(pages) || pages.length === 0) {
     return <Typography variant="body1">No receipt data to display.</Typography>;
@@ -32,9 +36,73 @@ export default function ReceiptTable({ data, onNext }) {
     setEdited(true);
   };
 
-  const handleSave = () => {
+  const formatDataForSheets = (page) => {
+    const header = ['Vendor', 'Date', 'Subtotal', 'Tax', 'Total'];
+    const headerValues = [
+      page.data.Vendor || page.data.vendor || '',
+      page.data.Date || page.data.date || '',
+      page.data.Subtotal || page.data.subtotal || '',
+      page.data.Tax || page.data.tax || '',
+      page.data.Total || page.data.total || ''
+    ];
+
+    const itemHeaders = ['Qty', 'Item Number', 'Item Name', 'Amount'];
+    const items = (page.data.items || []).map(item => [
+      item.Qty || item.qty || '',
+      item.Item_Number || item.item_number || '',
+      item.Item_Name || item.item_name || '',
+      item.Amount || item.amount || ''
+    ]);
+
+    return [header, headerValues, itemHeaders, ...items];
+  };
+
+  const handleSave = async () => {
+    if (!selectedSheet) {
+      setSheetSelectorOpen(true);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // Process each page
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        if (page.error) continue;
+
+        const values = formatDataForSheets(page);
+        const range = `Sheet1!A${i * 20 + 1}`; // Offset each page by 20 rows
+        
+        await sheetsService.writeSheet(range, values);
+      }
+
+      setNotification({
+        open: true,
+        message: 'Successfully saved to Google Sheets!',
+        severity: 'success'
+      });
+      
     setEdited(false);
     if (onNext) onNext(pages);
+    } catch (error) {
+      setNotification({
+        open: true,
+        message: `Error saving to Google Sheets: ${error.message}`,
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, open: false });
+  };
+
+  const handleSheetSelect = (sheet) => {
+    setSelectedSheet(sheet);
+    handleSave();
   };
 
   return (
@@ -139,18 +207,36 @@ export default function ReceiptTable({ data, onNext }) {
         color="primary"
         style={{ marginTop: 24, marginRight: 16 }}
         onClick={handleSave}
+        disabled={loading}
       >
-        Save & Apply
+        {loading ? 'Saving...' : 'Save & Apply'}
       </Button>
       <Button
         variant="outlined"
         color="secondary"
         style={{ marginTop: 24 }}
         onClick={() => setPages(JSON.parse(JSON.stringify(data)))}
-        disabled={!edited}
+        disabled={!edited || loading}
       >
         Cancel
       </Button>
+
+      <SheetSelector
+        open={sheetSelectorOpen}
+        onClose={() => setSheetSelectorOpen(false)}
+        onSelect={handleSheetSelect}
+      />
+
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseNotification} severity={notification.severity}>
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 } 
