@@ -1,11 +1,6 @@
 from flask import Blueprint, request, jsonify
-import os
-from services.receipt_parser import extract_text_with_openai
-from services.file_service import save_file_to_uploads
-from services.receipt_service import save_receipt_to_db
-from models.receipt import Receipt
+from services.receipt_service import save_receipt_to_db, process_upload
 from database import db
-import json
 
 # Create a blueprint for all routes
 all_routes_bp = Blueprint("all_routes", __name__)
@@ -20,18 +15,14 @@ def upload_file():
         if file.filename == '':
             return jsonify({"error": "No selected file"}), 400
 
-        # Save file using the service
-        file_path = save_file_to_uploads(file)
-
-        # Parse file using your parser
-        file.seek(0)  # Reset file pointer after saving
-        parsed_data = extract_text_with_openai(file)
+        # Orchestrate upload and parsing using the service
+        file_path, parsed_pages = process_upload(file)
 
         return jsonify({
             "message": "File uploaded and parsed successfully",
             "filename": file.filename,
             "file_path": file_path,
-            "parsed_data": parsed_data
+            "parsed_data": parsed_pages
         }), 200
     except Exception as e:
         print("DEBUG: Exception encountered in upload file:", e)
