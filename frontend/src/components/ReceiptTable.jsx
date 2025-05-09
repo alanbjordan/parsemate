@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography, Box, TextField, Snackbar, Alert } from '@mui/material';
-import { uploadReceipt, fetchReceipts } from '../services/api';
+import { uploadReceipt, fetchReceipts, saveReceipt } from '../services/api';
 
 export default function ReceiptTable({ data, onNext }) {
   const [pages, setPages] = useState(() => JSON.parse(JSON.stringify(data)));
@@ -8,13 +8,7 @@ export default function ReceiptTable({ data, onNext }) {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   const [receipts, setReceipts] = useState([]);
-
-  useEffect(() => {
-    // Fetch all receipts from the backend on mount
-    fetchReceipts()
-      .then(setReceipts)
-      .catch(err => setNotification({ open: true, message: err.message, severity: 'error' }));
-  }, []);
+  const [showAllReceipts, setShowAllReceipts] = useState(false);
 
   if (!pages || !Array.isArray(pages) || pages.length === 0) {
     return <Typography variant="body1">No receipt data to display.</Typography>;
@@ -45,20 +39,18 @@ export default function ReceiptTable({ data, onNext }) {
   const handleSave = async () => {
     try {
       setLoading(true);
-      // Assume only one file and one page for upload
-      // You may need to adjust this if you support multiple files/pages
-      const file = data[0]?.file; // You need to pass the file object in data
-      const parsedData = pages[0]?.data;
-      await uploadReceipt(file, parsedData);
+      // Save all edited pages to the database
+      await saveReceipt(pages);
       setNotification({
         open: true,
         message: 'Successfully saved to database!',
         severity: 'success'
       });
       setEdited(false);
-      // Refresh receipts list
+      // Fetch receipts only after successful save
       const newReceipts = await fetchReceipts();
       setReceipts(newReceipts);
+      setShowAllReceipts(true);
       if (onNext) onNext(pages);
     } catch (error) {
       setNotification({
@@ -191,40 +183,42 @@ export default function ReceiptTable({ data, onNext }) {
         Cancel
       </Button>
 
-      {/* Display all receipts from the database */}
-      <Box mt={6}>
-        <Typography variant="h6">All Receipts</Typography>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Vendor</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Subtotal</TableCell>
-                <TableCell>Tax</TableCell>
-                <TableCell>Total</TableCell>
-                <TableCell>File</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {receipts.map((receipt) => (
-                <TableRow key={receipt.id}>
-                  <TableCell>{receipt.vendor}</TableCell>
-                  <TableCell>{receipt.date}</TableCell>
-                  <TableCell>{receipt.subtotal}</TableCell>
-                  <TableCell>{receipt.tax}</TableCell>
-                  <TableCell>{receipt.total}</TableCell>
-                  <TableCell>
-                    <a href={receipt.file_url} target="_blank" rel="noopener noreferrer">
-                      {receipt.filename}
-                    </a>
-                  </TableCell>
+      {/* Only show all receipts after save */}
+      {showAllReceipts && (
+        <Box mt={6}>
+          <Typography variant="h6">All Receipts</Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Vendor</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Subtotal</TableCell>
+                  <TableCell>Tax</TableCell>
+                  <TableCell>Total</TableCell>
+                  <TableCell>File</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
+              </TableHead>
+              <TableBody>
+                {receipts.map((receipt) => (
+                  <TableRow key={receipt.id}>
+                    <TableCell>{receipt.vendor}</TableCell>
+                    <TableCell>{receipt.date}</TableCell>
+                    <TableCell>{receipt.subtotal}</TableCell>
+                    <TableCell>{receipt.tax}</TableCell>
+                    <TableCell>{receipt.total}</TableCell>
+                    <TableCell>
+                      <a href={receipt.file_url} target="_blank" rel="noopener noreferrer">
+                        {receipt.filename}
+                      </a>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
 
       <Snackbar
         open={notification.open}

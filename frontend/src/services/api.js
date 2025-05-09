@@ -17,7 +17,10 @@ export async function uploadReceipt(file, parsedData) {
   if (!response.ok) {
     throw new Error('File upload failed');
   }
-  return await response.json();
+  const json = await response.json();
+  console.log('File uploaded successfully');
+  console.log(json);
+  return json;
 }
 
 export async function fetchReceipts() {
@@ -26,4 +29,33 @@ export async function fetchReceipts() {
     throw new Error('Failed to fetch receipts');
   }
   return await response.json();
+}
+
+export async function saveReceipt(data) {
+  const response = await fetch(`${API_URL}/save-receipt`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to save receipt');
+  }
+  const json = await response.json();
+  console.log('Receipt saved successfully');
+  console.log(json);
+  return json;
+}
+
+export async function fetchReceiptSummaries() {
+  const response = await fetch(`${API_URL}/receipts/summary`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch receipt summaries');
+  }
+  const json = await response.json();
+  console.log('Receipt summaries fetched successfully');
+  console.log(json);
+  return json;
 } 

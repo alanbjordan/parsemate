@@ -6,22 +6,43 @@ from helpers.pdf2img_helpers import handle_file_for_ocr
 
 def save_receipt_to_db(data):
     """
-    Save a receipt to the database given a dict of receipt data.
-    Returns the created Receipt object.
+    Save one or more receipts to the database given a dict or list of dicts of receipt data.
+    Returns the created Receipt object(s).
     """
-    receipt = Receipt(
-        filename=data.get('filename'),
-        file_path=data.get('file_path'),
-        vendor=data.get('vendor'),
-        date=data.get('date'),
-        subtotal=data.get('subtotal'),
-        tax=data.get('tax'),
-        total=data.get('total'),
-        items_json=json.dumps(data.get('items', []))
-    )
-    db.session.add(receipt)
-    db.session.commit()
-    return receipt
+    receipts = []
+    # If data is a list, save each receipt
+    if isinstance(data, list):
+        for entry in data:
+            receipt = Receipt(
+                filename=entry.get('filename'),
+                file_path=entry.get('file'),
+                vendor=entry.get('data', {}).get('Vendor') or entry.get('vendor'),
+                date=entry.get('data', {}).get('Date') or entry.get('date'),
+                subtotal=entry.get('data', {}).get('Subtotal') or entry.get('subtotal'),
+                tax=entry.get('data', {}).get('Tax') or entry.get('tax'),
+                total=entry.get('data', {}).get('Total') or entry.get('total'),
+                items_json=json.dumps(entry.get('data', {}).get('items', entry.get('items', [])))
+            )
+            db.session.add(receipt)
+            receipts.append(receipt)
+        db.session.commit()
+        return receipts
+    else:
+        # Single receipt dict
+        entry = data
+        receipt = Receipt(
+            filename=entry.get('filename'),
+            file_path=entry.get('file'),
+            vendor=entry.get('data', {}).get('Vendor') or entry.get('vendor'),
+            date=entry.get('data', {}).get('Date') or entry.get('date'),
+            subtotal=entry.get('data', {}).get('Subtotal') or entry.get('subtotal'),
+            tax=entry.get('data', {}).get('Tax') or entry.get('tax'),
+            total=entry.get('data', {}).get('Total') or entry.get('total'),
+            items_json=json.dumps(entry.get('data', {}).get('items', entry.get('items', [])))
+        )
+        db.session.add(receipt)
+        db.session.commit()
+        return receipt
 
 
 def process_upload(file):

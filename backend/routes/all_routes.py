@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from services.receipt_service import save_receipt_to_db, process_upload
 from database import db
+from models.receipt import Receipt
 
 # Create a blueprint for all routes
 all_routes_bp = Blueprint("all_routes", __name__)
@@ -43,10 +44,18 @@ def save_receipt():
         # Use the service function to save to DB
         receipt = save_receipt_to_db(data)
 
-        return jsonify({
-            "message": "Receipt saved successfully",
-            "receipt_id": receipt.id
-        }), 200
+        # Handle both single and multiple receipts
+        if isinstance(receipt, list):
+            ids = [r.id for r in receipt]
+            return jsonify({
+                "message": "Receipts saved successfully",
+                "receipt_ids": ids
+            }), 200
+        else:
+            return jsonify({
+                "message": "Receipt saved successfully",
+                "receipt_id": receipt.id
+            }), 200
 
     except Exception as e:
         print("DEBUG: Exception encountered in save receipt:", e)
@@ -57,3 +66,36 @@ def save_receipt():
 @all_routes_bp.route("/health", methods=["GET"])
 def health_check():
     return jsonify({"status": "ok", "message": "Backend is healthy"}), 200
+
+@all_routes_bp.route("/receipts", methods=["GET"])
+def get_receipts():
+    """Return all receipts in the database as a list of dicts."""
+    try:
+        receipts = Receipt.query.order_by(Receipt.upload_time.desc()).all()
+        return jsonify([r.to_dict() for r in receipts]), 200
+    except Exception as e:
+        print("DEBUG: Exception encountered in get_receipts:", e)
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@all_routes_bp.route("/receipts/summary", methods=["GET"])
+def get_receipts_summary():
+    """Return summary info for all receipts: filename, vendor, total."""
+    try:
+        receipts = Receipt.query.order_by(Receipt.upload_time.desc()).all()
+        summary = [
+            {
+                "id": r.id,
+                "filename": r.filename,
+                "vendor": r.vendor,
+                "total": r.total
+            }
+            for r in receipts
+        ]
+        return jsonify(summary), 200
+    except Exception as e:
+        print("DEBUG: Exception encountered in get_receipts_summary:", e)
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
