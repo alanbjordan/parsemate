@@ -2,9 +2,10 @@
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
-export async function uploadFile(file) {
+export async function uploadReceipt(file, parsedData) {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('data', JSON.stringify(parsedData));
 
   const response = await fetch(`${API_URL}/upload`, {
     method: 'POST',
@@ -16,7 +17,13 @@ export async function uploadFile(file) {
   if (!response.ok) {
     throw new Error('File upload failed');
   }
+  return await response.json();
+}
 
-  const data = await response.json();
-  return data.parsed_data;
+export async function fetchReceipts() {
+  const response = await fetch(`${API_URL}/receipts`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch receipts');
+  }
+  return await response.json();
 } 

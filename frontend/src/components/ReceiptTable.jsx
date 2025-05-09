@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography, Box, TextField, Snackbar, Alert } from '@mui/material';
+import { uploadReceipt, fetchReceipts } from '../services/api';
 
 export default function ReceiptTable({ data, onNext }) {
-  // Deep copy data to local state for editing
   const [pages, setPages] = useState(() => JSON.parse(JSON.stringify(data)));
   const [edited, setEdited] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
-  const [sheetSelectorOpen, setSheetSelectorOpen] = useState(false);
-  const [selectedSheet, setSelectedSheet] = useState(null);
+  const [receipts, setReceipts] = useState([]);
+
+  useEffect(() => {
+    // Fetch all receipts from the backend on mount
+    fetchReceipts()
+      .then(setReceipts)
+      .catch(err => setNotification({ open: true, message: err.message, severity: 'error' }));
+  }, []);
 
   if (!pages || !Array.isArray(pages) || pages.length === 0) {
     return <Typography variant="body1">No receipt data to display.</Typography>;
@@ -36,59 +42,28 @@ export default function ReceiptTable({ data, onNext }) {
     setEdited(true);
   };
 
-  const formatDataForSheets = (page) => {
-    const header = ['Vendor', 'Date', 'Subtotal', 'Tax', 'Total'];
-    const headerValues = [
-      page.data.Vendor || page.data.vendor || '',
-      page.data.Date || page.data.date || '',
-      page.data.Subtotal || page.data.subtotal || '',
-      page.data.Tax || page.data.tax || '',
-      page.data.Total || page.data.total || ''
-    ];
-
-    const itemHeaders = ['Qty', 'Item Number', 'Item Name', 'Amount'];
-    const items = (page.data.items || []).map(item => [
-      item.Qty || item.qty || '',
-      item.Item_Number || item.item_number || '',
-      item.Item_Name || item.item_name || '',
-      item.Amount || item.amount || ''
-    ]);
-
-    return [header, headerValues, itemHeaders, ...items];
-  };
-
   const handleSave = async () => {
-    if (!selectedSheet) {
-      setSheetSelectorOpen(true);
-      return;
-    }
-
     try {
       setLoading(true);
-      
-      // Process each page
-      for (let i = 0; i < pages.length; i++) {
-        const page = pages[i];
-        if (page.error) continue;
-
-        const values = formatDataForSheets(page);
-        const range = `Sheet1!A${i * 20 + 1}`; // Offset each page by 20 rows
-        
-        await sheetsService.writeSheet(range, values);
-      }
-
+      // Assume only one file and one page for upload
+      // You may need to adjust this if you support multiple files/pages
+      const file = data[0]?.file; // You need to pass the file object in data
+      const parsedData = pages[0]?.data;
+      await uploadReceipt(file, parsedData);
       setNotification({
         open: true,
-        message: 'Successfully saved to Google Sheets!',
+        message: 'Successfully saved to database!',
         severity: 'success'
       });
-      
-    setEdited(false);
-    if (onNext) onNext(pages);
+      setEdited(false);
+      // Refresh receipts list
+      const newReceipts = await fetchReceipts();
+      setReceipts(newReceipts);
+      if (onNext) onNext(pages);
     } catch (error) {
       setNotification({
         open: true,
-        message: `Error saving to Google Sheets: ${error.message}`,
+        message: `Error saving to database: ${error.message}`,
         severity: 'error'
       });
     } finally {
@@ -98,11 +73,6 @@ export default function ReceiptTable({ data, onNext }) {
 
   const handleCloseNotification = () => {
     setNotification({ ...notification, open: false });
-  };
-
-  const handleSheetSelect = (sheet) => {
-    setSelectedSheet(sheet);
-    handleSave();
   };
 
   return (
@@ -221,11 +191,40 @@ export default function ReceiptTable({ data, onNext }) {
         Cancel
       </Button>
 
-      <SheetSelector
-        open={sheetSelectorOpen}
-        onClose={() => setSheetSelectorOpen(false)}
-        onSelect={handleSheetSelect}
-      />
+      {/* Display all receipts from the database */}
+      <Box mt={6}>
+        <Typography variant="h6">All Receipts</Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Vendor</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Subtotal</TableCell>
+                <TableCell>Tax</TableCell>
+                <TableCell>Total</TableCell>
+                <TableCell>File</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {receipts.map((receipt) => (
+                <TableRow key={receipt.id}>
+                  <TableCell>{receipt.vendor}</TableCell>
+                  <TableCell>{receipt.date}</TableCell>
+                  <TableCell>{receipt.subtotal}</TableCell>
+                  <TableCell>{receipt.tax}</TableCell>
+                  <TableCell>{receipt.total}</TableCell>
+                  <TableCell>
+                    <a href={receipt.file_url} target="_blank" rel="noopener noreferrer">
+                      {receipt.filename}
+                    </a>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
 
       <Snackbar
         open={notification.open}
