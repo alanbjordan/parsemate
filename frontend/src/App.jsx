@@ -31,6 +31,7 @@ function ReceiptSummaryList() {
             <th style={{ textAlign: 'left', padding: '8px' }}>Filename</th>
             <th style={{ textAlign: 'left', padding: '8px' }}>Vendor</th>
             <th style={{ textAlign: 'left', padding: '8px' }}>Total</th>
+            <th style={{ textAlign: 'left', padding: '8px' }}>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -39,6 +40,7 @@ function ReceiptSummaryList() {
               <td style={{ padding: '8px' }}>{r.filename}</td>
               <td style={{ padding: '8px' }}>{r.vendor}</td>
               <td style={{ padding: '8px' }}>{r.total}</td>
+              <td style={{ padding: '8px' }}>{r.date}</td>
             </tr>
           ))}
         </tbody>

@@ -81,7 +81,7 @@ def get_receipts():
 
 @all_routes_bp.route("/receipts/summary", methods=["GET"])
 def get_receipts_summary():
-    """Return summary info for all receipts: filename, vendor, total."""
+    """Return summary info for all receipts: filename, vendor, total, date."""
     try:
         receipts = Receipt.query.order_by(Receipt.upload_time.desc()).all()
         summary = [
@@ -89,7 +89,8 @@ def get_receipts_summary():
                 "id": r.id,
                 "filename": r.filename,
                 "vendor": r.vendor,
-                "total": r.total
+                "total": r.total,
+                "date": r.date
             }
             for r in receipts
         ]
