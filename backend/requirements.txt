@@ -11,3 +11,7 @@ flask_cors
 opencv-python
 googletrans
 pdf2image
+flask_sqlalchemy
+flask_bcrypt
+sqlalchemy
+psycopg2-binary

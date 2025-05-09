@@ -5,10 +5,6 @@ from flask import jsonify, request
 from functools import wraps
 from config import Config
 
-from flask import jsonify, request
-from functools import wraps
-from config import Config
-
 
 # This function handles dynamic CORS preflight requests.
 def handle_dynamic_cors_preflight():

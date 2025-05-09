@@ -1,13 +1,15 @@
 import React, { useRef, useState } from 'react'
-import { Paper, Typography, Box, Button, Alert, IconButton, Grid, CircularProgress } from '@mui/material'
+import { Paper, Typography, Box, Button, Alert, IconButton, Grid, CircularProgress, Breadcrumbs, Link } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import UploadModal from './UploadModal'
-import { uploadFile } from '../../services/api'
+import { uploadReceipt } from '../../services/api'
+import HomeIcon from '@mui/icons-material/Home';
+import { useNavigate } from 'react-router-dom';
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf']
 const MAX_SIZE_MB = 5
 
-function Upload() {
+function Upload({ onUploadSuccess, onNext }) {
   const [files, setFiles] = useState([])
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -16,6 +18,7 @@ function Upload() {
   const [dragActive, setDragActive] = useState(false)
   const [loading, setLoading] = useState(false)
   const fileInputRef = useRef()
+  const navigate = useNavigate();
 
   const validateFile = (f) => {
     if (!ACCEPTED_TYPES.includes(f.type)) {
@@ -103,9 +106,11 @@ function Upload() {
     }
     setLoading(true)
     try {
-      const response = await uploadFile(files[0])
-      setSuccess(response.message || 'File uploaded successfully!')
+      const parsedData = await uploadReceipt(files[0])
+      setSuccess('File uploaded and parsed successfully!')
       setFiles([])
+      if (onUploadSuccess) onUploadSuccess(parsedData)
+      if (onNext) onNext()
     } catch (err) {
       setError(err.message || 'Upload failed.')
     }
@@ -155,6 +160,20 @@ function Upload() {
 
   return (
     <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+      <Box sx={{ mb: 2, textAlign: 'left' }}>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link
+            underline="hover"
+            color="inherit"
+            sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          >
+            <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
+            Home
+          </Link>
+          <Typography color="text.primary">Upload</Typography>
+        </Breadcrumbs>
+      </Box>
       <Typography variant="h6" mb={2}>Upload Receipts</Typography>
       <Box
         onDrop={handleDrop}

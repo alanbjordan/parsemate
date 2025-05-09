@@ -9,15 +9,11 @@ from dotenv import load_dotenv
 import os
 from flask_cors import CORS
 from config import Config
+from create_app import create_app
+from database import db
+from models.receipt import Receipt  # Import your models so db.create_all() sees them
 
 load_dotenv()
-
-# create_app function to initialize the Flask application
-def create_app():
-    # Initialize Flask app
-    app = Flask(__name__)
-
-    return app
 
 # Create the application instance
 app = create_app()
@@ -25,9 +21,7 @@ app = create_app()
 # Register routes
 app.register_blueprint(all_routes_bp)
 
-# Enable CORS on app and blueprint
-CORS(app, origins=Config.CORS_ORIGINS, supports_credentials=True)
-
 if __name__ == '__main__':
-    # Run the application
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()  # Creates tables if they don't exist
+    app.run(host='0.0.0.0', port=5000, debug=True)
