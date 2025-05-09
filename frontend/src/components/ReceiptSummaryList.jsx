@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { fetchReceiptSummaries, fetchReceiptById } from '../services/api';
-import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Table, TableBody, TableCell, TableRow, CircularProgress } from '@mui/material';
+import { fetchReceiptSummaries, fetchReceiptById, deleteReceiptById } from '../services/api';
+import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Table, TableBody, TableCell, TableRow, CircularProgress, Breadcrumbs, Link, Box, Button, DialogActions } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import HomeIcon from '@mui/icons-material/Home';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useNavigate } from 'react-router-dom';
 
 function ReceiptDetailModal({ open, onClose, receiptId }) {
   const [receipt, setReceipt] = useState(null);
@@ -70,6 +73,10 @@ function ReceiptSummaryList() {
   const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchReceiptSummaries()
@@ -88,35 +95,83 @@ function ReceiptSummaryList() {
     setSelectedId(null);
   };
 
-  if (loading) return <div>Loading receipt summaries...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!summaries.length) return <div>No receipts found.</div>;
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    setDeleteError(null);
+    try {
+      await deleteReceiptById(deleteId);
+      setSummaries(summaries => summaries.filter(r => r.id !== deleteId));
+      setDeleteId(null);
+    } catch (err) {
+      setDeleteError(err.message);
+    }
+    setDeleteLoading(false);
+  };
 
   return (
-    <div>
+    <Box>
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link
+          underline="hover"
+          color="inherit"
+          sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+        >
+          <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
+          Home
+        </Link>
+        <Typography color="text.primary">All Receipts</Typography>
+      </Breadcrumbs>
       <h2>All Receipts</h2>
-      <Table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', padding: '8px' }}>Filename</th>
-            <th style={{ textAlign: 'left', padding: '8px' }}>Vendor</th>
-            <th style={{ textAlign: 'left', padding: '8px' }}>Total</th>
-            <th style={{ textAlign: 'left', padding: '8px' }}>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {summaries.map(r => (
-            <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(r.id)}>
-              <td style={{ padding: '8px' }}>{r.filename}</td>
-              <td style={{ padding: '8px' }}>{r.vendor}</td>
-              <td style={{ padding: '8px' }}>{r.total}</td>
-              <td style={{ padding: '8px' }}>{r.date}</td>
+      {loading ? (
+        <div>Loading receipt summaries...</div>
+      ) : error ? (
+        <div>Error: {error}</div>
+      ) : !summaries.length ? (
+        <div>No receipts found.</div>
+      ) : (
+        <Table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', padding: '8px' }}>Filename</th>
+              <th style={{ textAlign: 'left', padding: '8px' }}>Vendor</th>
+              <th style={{ textAlign: 'left', padding: '8px' }}>Total</th>
+              <th style={{ textAlign: 'left', padding: '8px' }}>Date</th>
+              <th style={{ textAlign: 'left', padding: '8px' }}>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {summaries.map(r => (
+              <tr key={r.id}>
+                <td style={{ padding: '8px', cursor: 'pointer' }} onClick={() => handleRowClick(r.id)}>{r.filename}</td>
+                <td style={{ padding: '8px', cursor: 'pointer' }} onClick={() => handleRowClick(r.id)}>{r.vendor}</td>
+                <td style={{ padding: '8px', cursor: 'pointer' }} onClick={() => handleRowClick(r.id)}>{r.total}</td>
+                <td style={{ padding: '8px', cursor: 'pointer' }} onClick={() => handleRowClick(r.id)}>{r.date}</td>
+                <td style={{ padding: '8px' }}>
+                  <IconButton color="error" onClick={() => setDeleteId(r.id)} aria-label="delete">
+                    <DeleteIcon />
+                  </IconButton>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
       <ReceiptDetailModal open={modalOpen} onClose={handleCloseModal} receiptId={selectedId} />
-    </div>
+      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this receipt?</Typography>
+          {deleteError && <Typography color="error">{deleteError}</Typography>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteId(null)} disabled={deleteLoading}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" disabled={deleteLoading}>
+            {deleteLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
 

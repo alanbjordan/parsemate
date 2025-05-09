@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography, Box, TextField, Snackbar, Alert } from '@mui/material';
 import { uploadReceipt, fetchReceipts, saveReceipt } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 export default function ReceiptTable({ data, onNext }) {
   const [pages, setPages] = useState(() => JSON.parse(JSON.stringify(data)));
   const [edited, setEdited] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
-  const [receipts, setReceipts] = useState([]);
-  const [showAllReceipts, setShowAllReceipts] = useState(false);
+  const navigate = useNavigate();
 
   if (!pages || !Array.isArray(pages) || pages.length === 0) {
     return <Typography variant="body1">No receipt data to display.</Typography>;
@@ -39,7 +39,6 @@ export default function ReceiptTable({ data, onNext }) {
   const handleSave = async () => {
     try {
       setLoading(true);
-      // Save all edited pages to the database
       await saveReceipt(pages);
       setNotification({
         open: true,
@@ -47,11 +46,8 @@ export default function ReceiptTable({ data, onNext }) {
         severity: 'success'
       });
       setEdited(false);
-      // Fetch receipts only after successful save
-      const newReceipts = await fetchReceipts();
-      setReceipts(newReceipts);
-      setShowAllReceipts(true);
       if (onNext) onNext(pages);
+      navigate('/receipts');
     } catch (error) {
       setNotification({
         open: true,
@@ -182,43 +178,6 @@ export default function ReceiptTable({ data, onNext }) {
       >
         Cancel
       </Button>
-
-      {/* Only show all receipts after save */}
-      {showAllReceipts && (
-        <Box mt={6}>
-          <Typography variant="h6">All Receipts</Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Vendor</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Subtotal</TableCell>
-                  <TableCell>Tax</TableCell>
-                  <TableCell>Total</TableCell>
-                  <TableCell>File</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {receipts.map((receipt) => (
-                  <TableRow key={receipt.id}>
-                    <TableCell>{receipt.vendor}</TableCell>
-                    <TableCell>{receipt.date}</TableCell>
-                    <TableCell>{receipt.subtotal}</TableCell>
-                    <TableCell>{receipt.tax}</TableCell>
-                    <TableCell>{receipt.total}</TableCell>
-                    <TableCell>
-                      <a href={receipt.file_url} target="_blank" rel="noopener noreferrer">
-                        {receipt.filename}
-                      </a>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-      )}
 
       <Snackbar
         open={notification.open}

@@ -66,4 +66,18 @@ export async function fetchReceiptById(id) {
     throw new Error('Failed to fetch receipt details');
   }
   return await response.json();
+}
+
+export async function deleteReceiptById(id) {
+  const response = await fetch(`${API_URL}/receipts/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to delete receipt');
+  }
+  return await response.json();
 } 

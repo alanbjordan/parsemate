@@ -114,3 +114,19 @@ def get_receipt(receipt_id):
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+@all_routes_bp.route("/receipts/<int:receipt_id>", methods=["DELETE"])
+def delete_receipt(receipt_id):
+    """Delete a receipt by id."""
+    try:
+        receipt = Receipt.query.get(receipt_id)
+        if not receipt:
+            return jsonify({"error": "Receipt not found"}), 404
+        db.session.delete(receipt)
+        db.session.commit()
+        return jsonify({"message": "Receipt deleted successfully"}), 200
+    except Exception as e:
+        print("DEBUG: Exception encountered in delete_receipt:", e)
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
